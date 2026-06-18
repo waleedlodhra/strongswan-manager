@@ -57,7 +57,8 @@ strongswan-manager/
 | 5 | ✅ DONE | Real-time monitoring dashboard (WebSocket SA table, SaMonitor, Daphne, 456 tests) |
 | 6 | ✅ DONE | Complete GUI feature coverage — IKEv1 PSK/Certificate/XAUTH+PSK/XAUTH+Certificate (client + server), 486 tests |
 | 7 | ✅ DONE | install.sh one-command installer (venv, migrations, collectstatic, admin user, config import, systemd) |
-| 8 | ✅ DONE | Full test suite — 554 passing tests (68 new: eap_secrets views, pools views, server_connections views, connections views/extended, auth model dict) |
+| 8 | ✅ DONE | Full test suite — 556 passing unit tests (68 new: eap_secrets views, pools views, server_connections views, connections views/extended, auth model dict) |
+| 9 | ✅ DONE | Fix monitoring dashboard — asyncio.get_running_loop(), list_sas() no-arg, charon-reachable state, template layout |
 
 ## Running the Project (Development)
 ```bash
