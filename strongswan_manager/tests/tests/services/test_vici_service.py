@@ -147,7 +147,7 @@ class TestSaCommands(unittest.TestCase):
     def test_list_sas_no_filter(self):
         self.session.list_sas.return_value = [{"rw": {"state": b"ESTABLISHED"}}]
         result = self.svc.list_sas()
-        self.session.list_sas.assert_called_once_with({})
+        self.session.list_sas.assert_called_once_with()
         self.assertEqual(len(result), 1)
 
     def test_list_sas_with_ike_filter(self):
