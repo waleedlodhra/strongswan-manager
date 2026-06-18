@@ -15,8 +15,12 @@ class OverviewHandler(object):
     def handle(self):
         try:
             return self._render()
-        except ViciException as e:
-            messages.warning(self.request, str(e))
+        except Exception as e:
+            if isinstance(e, ViciException):
+                messages.warning(self.request, str(e))
+            else:
+                messages.error(self.request, f"Unexpected error loading connections: {e}")
+            return render(self.request, 'connections/overview.html', {'table': None})
 
     def _render(self):
         queryset = Connection.objects.all()

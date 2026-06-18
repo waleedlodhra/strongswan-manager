@@ -2,65 +2,68 @@
 {% load i18n %}
 {% load render_table from django_tables2 %}
 {% load static %}
+
 {% block html-head %}
     <link href="{% static 'connections/connections.css' %}" rel="stylesheet">
     <link href="{% static 'connections/bootstrap-toggle.min.css' %}" rel="stylesheet">
     <script src="{% static 'connections/bootstrap-toggle.min.js' %}"></script>
-    <script src="{% static "connections/toggle_connection.js" %}"></script>
-    <script src="{% static "connections/logger.js" %}"></script>
+    <script src="{% static 'connections/toggle_connection.js' %}"></script>
+    <script src="{% static 'connections/logger.js' %}"></script>
 {% endblock html-head %}
+
 {% block title %}Connections{% endblock title %}
 {% block small-title %}Overview{% endblock small-title %}
+
 {% block content %}
-    <div id="connection-overview" class="row col-xs-12 col-md-10 col-md-offset-1">
-        <div id="add-btn" class="col-xs-12">
-        <span title="Add a new connection">
-            <a href="{% url "connections:choose" %}" id="add" class="btn btn-primary btn-lg pull-right">
-                <span class="glyphicon glyphicon-plus"></span> Add
-            </a>
-        </span>
-        </div>
-        <div id="con-table" class="">
-            {% if table %}
-                <div class="col-xs-12">
-                    {% render_table table 'connections/widgets/table.html' %}
-                </div>
-            {% else %}
-                <h3 id="no_certs_to_show">No connections to show</h3>
-                <p>Feel free to add a new connection with the blue Add button on the right side.</p>
-            {% endif %}
-        </div>
+<div id="connection-overview">
 
-        <div class="form-row">
-            <div class="col-xs-12">
-                <div class="panel-group" id="log_panel">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h4 class="panel-title" style="display: inline-block;">
+    <div class="mb-3">
+        <a href="{% url "connections:choose" %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Add Connection
+        </a>
+    </div>
 
-                                <a data-toggle="collapse" href="#collapse1">
-                                    <i class="fa fa-caret-down" aria-hidden="true"></i>
-                                    Logs</a>
-                            </h4>
-                        </div>
-                        <div id="collapse1" class="panel-collapse collapse">
-                            <div class="panel-body">
-                                <div id="log">
-                                    <div id="log-content">
-                                        <table id="log_table" class="table table-striped">
-                                            <tbody></tbody>
-                                        </table>
-                                    </div>
-                                </div>
+    <div id="con-table">
+        {% if table %}
+            {% render_table table 'connections/widgets/table.html' %}
+        {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-shield-slash fs-1 d-block mb-3"></i>
+                <h5>No connections configured</h5>
+                <p>Add a connection using the button above.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Log panel -->
+    <div class="mt-4">
+        <div class="accordion" id="logAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="logHeading">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#logCollapse"
+                            aria-expanded="false" aria-controls="logCollapse">
+                        <i class="bi bi-journal-text me-2"></i> Logs
+                    </button>
+                </h2>
+                <div id="logCollapse" class="accordion-collapse collapse"
+                     aria-labelledby="logHeading" data-bs-parent="#logAccordion">
+                    <div class="accordion-body p-0">
+                        <div id="log">
+                            <div id="log-content">
+                                <table id="log_table" class="table table-sm table-striped mb-0">
+                                    <tbody></tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
-    <script type="text/javascript"> $(function () {
-        logger('{{ csrf_token }}');
-    });</script>
-{% endblock %}
+
+</div>
+<script>
+$(function () { logger('{{ csrf_token }}'); });
+</script>
+{% endblock content %}

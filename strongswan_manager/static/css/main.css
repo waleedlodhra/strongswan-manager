@@ -145,8 +145,10 @@ html {
   padding: 10px;
   margin-bottom: 40px; }
 
-.visible-mode {
-  display: block !important; }
+/* .visible-mode intentionally has no display override.
+   Removing invisible-mode is enough to show the element;
+   forcing display:block broke Bootstrap 5's flex navbar layout. */
+.visible-mode {}
 
 .invisible-mode {
   display: none !important; }
