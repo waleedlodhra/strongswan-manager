@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load connections_extras %}
+{% load static %}
+{% block html-head %}
+    <link href="{% static 'connections/connections.css' %}" rel="stylesheet">
+    <script src="{% static 'connections/bootstrap-select.min.js' %}"></script>
+    <script src="{% static 'connections/CertificatePicker.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'connections/bootstrap-select.min.css' %}">
+{% endblock html-head %}
+{% block title %}Connection{% endblock title %}
+{% block small-title %}{% if connection %}Edit connection{% else %}Add a new connection
+{% endif %}{% endblock small-title %}
+{% block content %}
+    <div id="connection-details">
+        <div class="row">
+            <div class="col-sm-offset-2 col-sm-8 panel panel-default form-holder">
+                {% include form.template with form=form %}
+            </div>
+        </div>
+        <script>
+            $(function () {
+                $(document).popover({
+                    selector: '[data-toggle=popover]',
+                    trigger: 'focus',
+                    container: 'body'
+                });
+            });
+        </script>
+    </div>
+
+{% endblock %}

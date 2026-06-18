@@ -1,0 +1,14 @@
+{% load vici_checker %}
+<div id="vici_checker">
+    {% vici_reachable as result %}
+    {% if not result.reachable %}
+        <div class="alert alert-warning" role="alert"><strong>{{ result.message }}</strong></div>
+    {% endif %}
+    {% if  result.reachable %}
+        {% vici_version_supported as supported %}
+        {% if not supported %}
+            <div class="alert alert-warning" role="alert"><strong>strongSwan version is not supported! strongMan needs
+                at least strongSwan version 5.4.0.</strong></div>
+        {% endif %}
+    {% endif %}
+</div>
