@@ -50,8 +50,8 @@ strongswan-manager/
 | Phase | Status | Description |
 |-------|--------|-------------|
 | 0 | ✅ DONE | Project bootstrap, rename, Bootstrap 5, requirements |
-| 1 | 🔲 TODO | Unified data model (connections+server_connections merged, all missing fields) |
-| 2 | 🔲 TODO | Enhanced VICI service (all commands, pooled connection) |
+| 1 | ✅ DONE | Unified data model (all swanctl fields, IKEv1/PSK/XAUTH, Authority model, 232 tests) |
+| 2 | 🔲 NEXT | Enhanced VICI service (all commands, pooled connection) |
 | 3 | 🔲 TODO | Config import engine (ipsec.conf + ipsec.secrets + swanctl.conf parsers) |
 | 4 | 🔲 TODO | Two-way synchronization (GUI→StrongSwan signals, file watcher→GUI) |
 | 5 | 🔲 TODO | Real-time monitoring dashboard (WebSocket SA table) |
