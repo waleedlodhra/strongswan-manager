@@ -179,7 +179,11 @@ if command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -q "Status: a
 fi
 
 # ── Summary ───────────────────────────────────────────────────────────────────
-PRIMARY_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "localhost")
+# Use the source IP of the default route (the outward-facing interface).
+# Falls back to hostname -I first result, then localhost.
+PRIMARY_IP=$(ip route get 1.1.1.1 2>/dev/null | grep -oP 'src \K\S+' | head -1)
+[[ -z "$PRIMARY_IP" ]] && PRIMARY_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+[[ -z "$PRIMARY_IP" ]] && PRIMARY_IP="localhost"
 
 echo
 echo -e "${GREEN}${BOLD}══════════════════════════════════════════════════════${NC}"
