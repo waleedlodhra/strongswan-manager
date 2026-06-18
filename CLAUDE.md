@@ -52,8 +52,8 @@ strongswan-manager/
 | 0 | ✅ DONE | Project bootstrap, rename, Bootstrap 5, requirements |
 | 1 | ✅ DONE | Unified data model (all swanctl fields, IKEv1/PSK/XAUTH, Authority model, 232 tests) |
 | 2 | ✅ DONE | Enhanced VICI service — ViciService singleton + SaMonitor, all 38 commands, 313 tests |
-| 3 | 🔲 NEXT | Config import engine (ipsec.conf + ipsec.secrets + swanctl.conf parsers) |
-| 4 | 🔲 TODO | Two-way synchronization (GUI→StrongSwan signals, file watcher→GUI) |
+| 3 | ✅ DONE | Config import engine — ipsec.conf/secrets/swanctl parsers + import management cmd, 392 tests |
+| 4 | 🔲 NEXT | Two-way synchronization (GUI→StrongSwan signals, file watcher→GUI) |
 | 5 | 🔲 TODO | Real-time monitoring dashboard (WebSocket SA table) |
 | 6 | 🔲 TODO | Complete GUI feature coverage (IKEv1, PSK, transport mode, etc.) |
 | 7 | 🔲 TODO | install.sh one-command installer |
