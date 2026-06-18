@@ -310,4 +310,4 @@ class ConnectionFormsTest(TestCase):
         connection = form.create_connection('remote_access')
         self.assertIsNotNone(connection)
         self.assertEqual(connection.profile, "myNewProfileName")
-        self.assertEqual(connection.server_remote_addresses.first().value, '127.0.0.2')
+        self.assertEqual(connection.remote_addresses.first().value, '127.0.0.2')

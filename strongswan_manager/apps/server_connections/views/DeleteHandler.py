@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 from strongswan_manager.helper_apps.vici.wrapper.exception import ViciException
 
-from strongswan_manager.apps.server_connections.models.connections import Connection
+from strongswan_manager.apps.connections.models import Connection
 from strongswan_manager.helper_apps.vici.wrapper.wrapper import ViciWrapper
 
 

@@ -3,7 +3,7 @@ import sys
 from django import forms
 from strongswan_manager.apps.server_connections.forms.SubForms import HeaderForm, RemoteCertificateForm, \
     RemoteIdentityForm, ServerCertificateForm, EapForm, EapTlsForm, PoolForm
-from strongswan_manager.apps.server_connections.models.connections import IKEv2Certificate, IKEv2EAP, \
+from strongswan_manager.apps.connections.models import IKEv2Certificate, IKEv2EAP, \
     IKEv2CertificateEAP, IKEv2EapTls
 
 

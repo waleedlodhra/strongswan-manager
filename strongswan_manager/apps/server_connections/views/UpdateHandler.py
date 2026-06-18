@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.contrib import messages
 
 from ..forms.ConnectionForms import AbstractConnectionForm, AbstractDynamicForm
-from ..models.connections import Connection
+from strongswan_manager.apps.connections.models import Connection
 from .ToggleHandler import ToggleHandler
 
 

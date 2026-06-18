@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 
-from strongswan_manager.apps.server_connections.models.connections import Connection
+from strongswan_manager.apps.connections.models import Connection
 
 
 class StateHandler(object):

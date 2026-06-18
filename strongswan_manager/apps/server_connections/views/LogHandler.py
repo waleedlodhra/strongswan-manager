@@ -4,7 +4,7 @@ from django.utils import timezone
 
 from django.http import JsonResponse
 
-from strongswan_manager.apps.server_connections.models.specific import LogMessage
+from strongswan_manager.apps.connections.models import LogMessage
 
 
 class LogHandler(object):
