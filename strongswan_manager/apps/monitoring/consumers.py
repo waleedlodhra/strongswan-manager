@@ -1,8 +1,6 @@
 """
 WebSocket consumer for the real-time SA monitoring dashboard.
 
-Architecture
-------------
 Each browser tab that opens the dashboard creates one SaDashboardConsumer.
 On connect the consumer:
   1. Registers itself in the module-level ``_consumers`` set.
@@ -48,11 +46,7 @@ def _serialize(obj):
 def broadcast_sa_event(event_type: str, event_data: dict) -> None:
     """
     Push an SA event to every connected dashboard consumer.
-
     Called from the SaMonitor daemon thread; must not block.
-    ``asyncio.run_coroutine_threadsafe`` schedules the queue put on each
-    consumer's own event loop so there is no shared asyncio state between
-    threads.
     """
     msg = {
         "type": "sa.event",
@@ -69,32 +63,32 @@ def broadcast_sa_event(event_type: str, event_data: dict) -> None:
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
-def _fetch_sas() -> list:
-    """Fetch the current SA list synchronously (called via run_in_executor)."""
+def _fetch_sas() -> tuple[list, bool]:
+    """
+    Fetch the current SA list synchronously (called via run_in_executor).
+    Returns (sas, charon_reachable).
+    """
     from strongswan_manager.services.exceptions import ViciUnavailable
     from strongswan_manager.services.vici_service import ViciService
 
     try:
-        return ViciService.get_instance().list_sas()
-    except (ViciUnavailable, Exception):
-        return []
+        sas = ViciService.get_instance().list_sas()
+        return sas, True
+    except ViciUnavailable:
+        return [], False
+    except Exception:
+        logger.exception("Unexpected error fetching SAs from charon")
+        return [], False
 
 
 # ─── Consumer ─────────────────────────────────────────────────────────────────
 
 class SaDashboardConsumer(AsyncWebsocketConsumer):
-    """
-    Async WebSocket consumer for the live SA dashboard.
 
-    No explicit auth check — the HTTP view (login_required) guards access to
-    the dashboard page that serves the WS URL.  The WS path is not linked
-    anywhere for unauthenticated users.
-    """
-
-    SNAPSHOT_INTERVAL = 15.0  # refresh snapshot when no events arrive
+    SNAPSHOT_INTERVAL = 15.0
 
     async def connect(self):
-        self._loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
+        self._loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
         self._queue: asyncio.Queue = asyncio.Queue()
         self._task: asyncio.Task | None = None
 
@@ -116,7 +110,6 @@ class SaDashboardConsumer(AsyncWebsocketConsumer):
                 pass
 
     async def receive(self, text_data=None, bytes_data=None):
-        """Handle client-initiated messages.  Clients may send ``{type: "refresh"}``."""
         if not text_data:
             return
         try:
@@ -129,7 +122,6 @@ class SaDashboardConsumer(AsyncWebsocketConsumer):
     # ─── Internal helpers ─────────────────────────────────────────────────────
 
     async def _send_loop(self):
-        """Send an initial snapshot then forward events; re-snapshot on timeout."""
         await self._send_snapshot()
         while True:
             try:
@@ -143,11 +135,15 @@ class SaDashboardConsumer(AsyncWebsocketConsumer):
                 raise
 
     async def _send_snapshot(self):
-        loop = asyncio.get_event_loop()
-        sas = await loop.run_in_executor(None, _fetch_sas)
+        loop = asyncio.get_running_loop()
+        sas, charon_ok = await loop.run_in_executor(None, _fetch_sas)
         await self.send(
             json.dumps(
-                {"type": "sa.snapshot", "sas": _serialize(sas)},
+                {
+                    "type": "sa.snapshot",
+                    "sas": _serialize(sas),
+                    "charon_reachable": charon_ok,
+                },
                 default=str,
             )
         )

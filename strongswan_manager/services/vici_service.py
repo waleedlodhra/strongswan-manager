@@ -205,7 +205,10 @@ class ViciService:
             filters["ike-id"] = str(ike_id)
         if noblock:
             filters["noblock"] = "yes"
-        result = self._collect("list_sas", filters if filters else {})
+        if filters:
+            result = self._collect("list_sas", filters)
+        else:
+            result = self._collect("list_sas")
         return [dict(sa) for sa in result]
 
     def get_connection_state(self, name: str) -> str:

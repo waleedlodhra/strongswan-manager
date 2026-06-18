@@ -1,11 +1,14 @@
 {% extends "base.html" %}
 {% load static %}
 
+{% block title %}Live SA Monitor{% endblock title %}
+
 {% block html-head %}
 <style>
-  .sa-state-ESTABLISHED { color: #198754; }
-  .sa-state-CONNECTING  { color: #ffc107; }
-  .sa-state-DELETING    { color: #dc3545; }
+  .badge-state-ESTABLISHED { background-color: #198754 !important; }
+  .badge-state-CONNECTING  { background-color: #ffc107 !important; color: #000 !important; }
+  .badge-state-DELETING    { background-color: #dc3545 !important; }
+  .badge-state-DOWN        { background-color: #6c757d !important; }
   #ws-indicator { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
   .ws-connected    { background-color: #198754; }
   .ws-connecting   { background-color: #ffc107; animation: blink 1s step-start infinite; }
@@ -17,24 +20,29 @@
 {% endblock html-head %}
 
 {% block content %}
-<div class="container-fluid mt-3">
 
-  <!-- Header row -->
+  <!-- Toolbar -->
   <div class="d-flex align-items-center justify-content-between mb-3">
-    <h4 class="mb-0"><i class="bi bi-activity me-2"></i>Live SA Monitor</h4>
     <div class="d-flex align-items-center gap-3">
-      <span class="text-muted small">Last update: <span id="last-updated">—</span></span>
       <button id="refresh-btn" class="btn btn-sm btn-outline-secondary">
         <i class="bi bi-arrow-clockwise"></i> Refresh
       </button>
-      <span class="d-flex align-items-center gap-1 small">
-        <span id="ws-indicator" class="ws-connecting"></span>
-        <span id="ws-status-text">Connecting…</span>
-      </span>
+      <span class="text-muted small">Last update: <span id="last-updated">—</span></span>
     </div>
+    <span class="d-flex align-items-center gap-1 small">
+      <span id="ws-indicator" class="ws-connecting"></span>
+      <span id="ws-status-text">Connecting…</span>
+    </span>
   </div>
 
-  <!-- SA table -->
+  <!-- Charon unreachable alert -->
+  <div id="charon-down-alert" class="alert alert-danger d-none" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+    <strong>Cannot reach charon.</strong> The strongSwan daemon is not running or the VICI socket
+    (<code>/var/run/charon.vici</code>) is not accessible.
+  </div>
+
+  <!-- Active SA table -->
   <div class="table-responsive">
     <table class="table table-hover table-sm align-middle" id="sa-table">
       <thead class="table-dark">
@@ -50,22 +58,15 @@
         </tr>
       </thead>
       <tbody id="sa-tbody">
-        <!-- populated by JS -->
       </tbody>
     </table>
   </div>
 
-  <!-- Empty / error states -->
-  <div id="no-sa-row" class="text-center text-muted py-5" style="display:none">
-    <i class="bi bi-shield-slash fs-1 d-block mb-2"></i>
-    No active IKE Security Associations
-  </div>
-  <div id="charon-down-row" class="alert alert-warning" style="display:none">
-    <i class="bi bi-exclamation-triangle-fill me-1"></i>
-    Cannot reach charon — the VPN daemon may be down.
+  <div id="no-sa-msg" class="text-center text-muted py-4 d-none">
+    <i class="bi bi-shield-slash fs-2 d-block mb-2"></i>
+    No active IKE Security Associations — tunnels may be down or not yet initiated.
   </div>
 
-</div>
 {% endblock content %}
 
 {% block extra-scripts %}
@@ -73,7 +74,6 @@
 (function () {
   'use strict';
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
   function esc(s) {
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
@@ -88,40 +88,45 @@
   }
 
   function stateBadge(state) {
-    const cls = state === 'ESTABLISHED' ? 'success' :
-                state === 'CONNECTING'  ? 'warning text-dark' :
-                state === 'DELETING'    ? 'danger' : 'secondary';
-    return `<span class="badge bg-${cls}">${esc(state || 'UNKNOWN')}</span>`;
+    const label = state || 'UNKNOWN';
+    return `<span class="badge badge-state-${esc(label)}">${esc(label)}</span>`;
   }
 
   function cipherStr(sa) {
     const parts = [sa['encr-alg']];
-    if (sa['encr-keysize']) parts.push(sa['encr-keysize'] + ' bit');
+    if (sa['encr-keysize']) parts.push(sa['encr-keysize'] + '-bit');
     if (sa['integ-alg'])    parts.push(sa['integ-alg']);
     return parts.filter(Boolean).join(' / ');
   }
 
-  // ── Table update ───────────────────────────────────────────────────────────
-  function updateTable(sas) {
-    const tbody = document.getElementById('sa-tbody');
-    const noSa  = document.getElementById('no-sa-row');
-    const down  = document.getElementById('charon-down-row');
-    down.style.display = 'none';
+  function updateTable(sas, charonOk) {
+    const tbody   = document.getElementById('sa-tbody');
+    const noSaMsg = document.getElementById('no-sa-msg');
+    const downAlert = document.getElementById('charon-down-alert');
+
+    // charon unreachable
+    if (!charonOk) {
+      downAlert.classList.remove('d-none');
+      tbody.innerHTML = '';
+      noSaMsg.classList.add('d-none');
+      document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+      return;
+    }
+    downAlert.classList.add('d-none');
 
     if (!sas || sas.length === 0) {
       tbody.innerHTML = '';
-      noSa.style.display = '';
+      noSaMsg.classList.remove('d-none');
+      document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
       return;
     }
-    noSa.style.display = 'none';
+    noSaMsg.classList.add('d-none');
 
-    // Build new rows keyed by uniqueid for stable ordering
     const rows = [];
     sas.forEach(function(saObj) {
       const name = Object.keys(saObj)[0];
       const sa   = saObj[name] || {};
-      const children  = sa['child-sas'] || {};
-      const childCount = Object.keys(children).length;
+      const childCount = Object.keys(sa['child-sas'] || {}).length;
       rows.push(`
         <tr class="sa-row">
           <td><strong class="mono">${esc(name)}</strong></td>
@@ -154,9 +159,9 @@
     const dot  = document.getElementById('ws-indicator');
     const text = document.getElementById('ws-status-text');
     dot.className = '';
-    if (state === 'connected')    { dot.className = 'ws-connected';    text.textContent = 'Live';          }
-    else if (state === 'connecting') { dot.className = 'ws-connecting'; text.textContent = 'Connecting…';  }
-    else                          { dot.className = 'ws-disconnected'; text.textContent = 'Disconnected'; }
+    if (state === 'connected')       { dot.className = 'ws-connected';    text.textContent = 'Live'; }
+    else if (state === 'connecting') { dot.className = 'ws-connecting';   text.textContent = 'Connecting…'; }
+    else                             { dot.className = 'ws-disconnected'; text.textContent = 'Disconnected — retrying…'; }
   }
 
   function connect() {
@@ -181,12 +186,9 @@
       try { msg = JSON.parse(evt.data); } catch (e) { return; }
 
       if (msg.type === 'sa.snapshot') {
-        if (msg.error) {
-          document.getElementById('charon-down-row').style.display = '';
-        }
-        updateTable(msg.sas || []);
+        updateTable(msg.sas || [], msg.charon_reachable !== false);
       } else if (msg.type === 'sa.event') {
-        // An SA changed — request a fresh snapshot immediately
+        // An SA changed — request a fresh snapshot
         if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({ type: 'refresh' }));
         }
