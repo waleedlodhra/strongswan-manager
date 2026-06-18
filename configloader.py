@@ -8,16 +8,16 @@ if os.path.exists(activate):
         exec(f.read(), {'__file__': activate})
 
 os.chdir(path)
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "strongMan.settings.production")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "strongswan_manager.settings.production")
 import django
 django.setup()
 
 from collections import OrderedDict
-from strongMan.apps.server_connections.models import Connection
-from strongMan.apps.certificates.models.certificates import PrivateKey, Certificate
-from strongMan.apps.eap_secrets.models import Secret
-from strongMan.apps.pools.models.pools import Pool
-from strongMan.helper_apps.vici.wrapper.wrapper import ViciWrapper
+from strongswan_manager.apps.server_connections.models import Connection
+from strongswan_manager.apps.certificates.models.certificates import PrivateKey, Certificate
+from strongswan_manager.apps.eap_secrets.models import Secret
+from strongswan_manager.apps.pools.models.pools import Pool
+from strongswan_manager.helper_apps.vici.wrapper.wrapper import ViciWrapper
 
 
 def load_secrets(vici=ViciWrapper()):

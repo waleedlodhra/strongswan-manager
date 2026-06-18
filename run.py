@@ -7,8 +7,8 @@ PORT = 1515
 if __name__ == "__main__":
     os.chdir(DJANGO_DIR)
     print(os.getcwd())
-    print("Press CTRL + C to stop strongMan")
+    print("Press CTRL + C to stop strongswan_manager")
     print()
-    cmd = DJANGO_DIR + "/env/bin/gunicorn --workers 6  --bind 0.0.0.0:" + str(PORT) + " --env DJANGO_SETTINGS_MODULE=strongMan.settings.local strongMan.wsgi:application"
+    cmd = DJANGO_DIR + "/env/bin/gunicorn --workers 6  --bind 0.0.0.0:" + str(PORT) + " --env DJANGO_SETTINGS_MODULE=strongswan_manager.settings.local strongswan_manager.wsgi:application"
     process = subprocess.check_output(cmd.split())
 

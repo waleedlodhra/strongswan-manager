@@ -1,0 +1,62 @@
+<div id="pw_change">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{% if message.tags == "error" %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                <strong>{{ message }}</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% if success %}
+        <div class="alert alert-success">
+            <strong>Password changed successfully!</strong>
+        </div>
+        <button type="button" class="btn btn-secondary float-end" data-bs-dismiss="modal">Close</button>
+    {% else %}
+        <form action="" method="POST" id="pw_change_form">
+            {% csrf_token %}
+            <div class="mb-2">
+                <input class="form-control" type="password" name="old_password" id="old_password" placeholder="Current password">
+            </div>
+            <div class="mb-2">
+                <input class="form-control" type="password" name="password1" placeholder="New password">
+            </div>
+            <div class="mb-3">
+                <input class="form-control" type="password" name="password2" id="password2" placeholder="New password again">
+            </div>
+            <div id="passwordrules" class="small text-muted mb-3">
+                <strong>Rules:</strong>
+                <ul class="mb-0">
+                    <li>Minimum 8 characters</li>
+                    <li>At least one upper and one lower case letter</li>
+                    <li>At least one non-alphabetic character</li>
+                    <li>At least one digit</li>
+                </ul>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary" name="change_pw_btn" id="change_pw_btn">
+                    <i class="bi bi-key"></i> Change password
+                </button>
+            </div>
+        </form>
+        <script>
+            $("#pw_change_form").submit(function(e) {
+                e.preventDefault();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'pw_change' %}",
+                    data: $("#pw_change_form").serialize(),
+                    success: function(data) { $("#pw_change").replaceWith(data); }
+                });
+            });
+            document.getElementById('changePasswordModal')?.addEventListener('hidden.bs.modal', function() {
+                $.ajax({
+                    type: "GET",
+                    url: "{% url 'pw_change' %}",
+                    success: function(data) { $("#pw_change").replaceWith(data); }
+                });
+            });
+        </script>
+    {% endif %}
+</div>

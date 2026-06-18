@@ -21,7 +21,7 @@ jobs:
     - name: Run unit tests
       run: ./runtests.py --no-cov --no-vici
     - name: Run flake8
-      run: flake8 strongMan/
+      run: flake8 strongswan_manager/
 
   docker:
     runs-on: ubuntu-latest
@@ -35,10 +35,10 @@ jobs:
         docker compose up -d
         sleep 5
     - name: Run unit tests, collect coverage
-      run: docker compose exec -T roadwarrior /bin/sh -c "cd /strongMan; ./runtests.py"
+      run: docker compose exec -T roadwarrior /bin/sh -c "cd /strongswan_manager; ./runtests.py"
     - name: Run integration tests
-      run: docker compose exec -T roadwarrior /bin/sh -c "cd /strongMan; python manage.py test strongMan.tests.integration_tests --settings=strongMan.settings.local;"
+      run: docker compose exec -T roadwarrior /bin/sh -c "cd /strongswan_manager; python manage.py test strongswan_manager.tests.integration_tests --settings=strongswan_manager.settings.local;"
     - name: Convert and copy coverage data
-      run: docker compose exec -T roadwarrior /bin/sh -c "cd /strongMan; coverage xml -o -" > coverage.xml
+      run: docker compose exec -T roadwarrior /bin/sh -c "cd /strongswan_manager; coverage xml -o -" > coverage.xml
     - name: Submit coverage
       uses: coverallsapp/github-action@v2

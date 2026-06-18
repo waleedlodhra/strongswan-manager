@@ -1,7 +1,7 @@
 # Documentation
 
 ## setup.py
-Tool to install strongMan comfortably.
+Tool to install strongswan_manager comfortably.
 ```bash
 ./setup.py <command> [options]
 ```
@@ -13,10 +13,10 @@ Tool to install strongMan comfortably.
 ```bash
 ./setup.py install [-p %python-interpreter%]
 ```
-Makes strongMan ready to run.
+Makes strongswan_manager ready to run.
 
 - -p | --python %python-interpreter%
-    - Select a specific python interpreter to run strongMan
+    - Select a specific python interpreter to run strongswan_manager
     - python3 is used as default value for %python-interpreter%
 
 ### uninstall
@@ -24,18 +24,18 @@ Makes strongMan ready to run.
 sudo ./setup.py uninstall
 ```
 Undos the installation.
-Run this command as root to remove the strongMan systemd service.
+Run this command as root to remove the strongswan_manager systemd service.
 
 ### add-service
 ```bash
 sudo ./setup.py add-service
 ```
-Adds strongMan as a systemd service. The service will be disabled and stopped.
+Adds strongswan_manager as a systemd service. The service will be disabled and stopped.
 
-Enable (start strongMan at system startup) and start it with the following commands:
+Enable (start strongswan_manager at system startup) and start it with the following commands:
 ```bash
-sudo systemctl enable strongMan.service
-sudo systemctl start strongMan.service
+sudo systemctl enable strongswan_manager.service
+sudo systemctl start strongswan_manager.service
 ```
 
 You need root permissions to run add-service.
@@ -44,7 +44,7 @@ You need root permissions to run add-service.
 ```bash
 sudo ./setup.py remove-service
 ```
-Removes the strongMan systemd service.
+Removes the strongswan_manager systemd service.
 You need root permissions to run this command.
 
 ### migrate

@@ -23,8 +23,8 @@ class InstallerException(Exception):
 
 
 class BaseInstaller(object):
-    PRODUCTION_SETTINGS = "strongMan.settings.production"
-    LOCAL_SETTINGS = "strongMan.settings.local"
+    PRODUCTION_SETTINGS = "strongswan_manager.settings.production"
+    LOCAL_SETTINGS = "strongswan_manager.settings.local"
     mute = True
 
     def _tab(self, msg, times=2):
@@ -66,16 +66,16 @@ class BaseInstaller(object):
 
 class Migrator(BaseInstaller):
     def delete_db(self):
-        print(self._tab("Delete " + "strongMan/db.sqlite3"))
-        os.remove(self.django_dir + "/strongMan/db.sqlite3")
+        print(self._tab("Delete " + "strongswan_manager/db.sqlite3"))
+        os.remove(self.django_dir + "/strongswan_manager/db.sqlite3")
 
     def migrate(self):
         self._run_bash(
-            self.env + "/bin/python " + self.django_dir + "/manage.py migrate --settings=strongMan.settings.local")
+            self.env + "/bin/python " + self.django_dir + "/manage.py migrate --settings=strongswan_manager.settings.local")
 
     def load_fixtures(self):
         self._run_bash(
-            self.env + "/bin/python " + self.django_dir + "/manage.py loaddata initial_data.json --settings=strongMan.settings.local")
+            self.env + "/bin/python " + self.django_dir + "/manage.py loaddata initial_data.json --settings=strongswan_manager.settings.local")
 
 
 class Installer(BaseInstaller):
@@ -100,7 +100,7 @@ class Installer(BaseInstaller):
 
     def check_preconditions(self):
         if self.is_installed:
-            raise InstallerException("strongMan is already installed.")
+            raise InstallerException("strongswan_manager is already installed.")
 
         if not self.virtualenv_installed:
             raise InstallerException("Virtualenv is required and not installed.")
@@ -111,13 +111,13 @@ class Uninstaller(BaseInstaller):
         shutil.rmtree(self.env)
 
     def remove_staticfiles(self):
-        shutil.rmtree(self.django_dir + "/strongMan/staticfiles")
+        shutil.rmtree(self.django_dir + "/strongswan_manager/staticfiles")
 
 
 class Icon(BaseInstaller):
     def __init__(self):
-        self.DESTINATION = "/usr/share/applications/strongMan.desktop"
-        self.ORIGIN = self.django_dir + "/setup/strongMan.desktop"
+        self.DESTINATION = "/usr/share/applications/strongswan_manager.desktop"
+        self.ORIGIN = self.django_dir + "/setup/strongswan_manager.desktop"
 
     def exists(self):
         return os.path.exists(self.DESTINATION)
@@ -144,7 +144,7 @@ class Icon(BaseInstaller):
 
 
 class GunicornService(BaseInstaller):
-    SERVICE_PATH = "/etc/systemd/system/strongMan.service"
+    SERVICE_PATH = "/etc/systemd/system/strongswan_manager.service"
 
 
     @property
@@ -153,7 +153,7 @@ class GunicornService(BaseInstaller):
 
     @property
     def content(self):
-        with open(self.django_dir + "/setup/strongMan.service", "r") as f:
+        with open(self.django_dir + "/setup/strongswan_manager.service", "r") as f:
             content = f.read()
 
         template = Template(content)
@@ -169,16 +169,16 @@ class GunicornService(BaseInstaller):
         return True
 
     def enable(self):
-        self._run_bash("systemctl enable strongMan")
+        self._run_bash("systemctl enable strongswan_manager")
 
     def start(self):
-        self._run_bash("systemctl start strongMan")
+        self._run_bash("systemctl start strongswan_manager")
 
     def disable(self):
-        self._run_bash("systemctl disable strongMan")
+        self._run_bash("systemctl disable strongswan_manager")
 
     def stop(self):
-        self._run_bash("systemctl stop strongMan")
+        self._run_bash("systemctl stop strongswan_manager")
 
     def remove(self):
         os.remove(self.SERVICE_PATH)
@@ -202,11 +202,11 @@ if __name__ == "__main__":
                                             'remove-service'],
                         help="""
                         Command what to do:
-                        install \t-> Installs strongMan
-                        uninstall \t-> Uninstall strongMan
+                        install \t-> Installs strongswan_manager
+                        uninstall \t-> Uninstall strongswan_manager
 
                         Migrate \t-> Migrates the database (Mainyl developer use)
-                        add-service \t-> Adds a systemd service for strongMan
+                        add-service \t-> Adds a systemd service for strongswan_manager
                         remove-service \t-> Removes the systemd service""")
     parser.add_argument("-p", "--python", help="choice your python interpreter.")
     parser.add_argument("-dm", "--delete-migrations", action="store_true",
@@ -227,7 +227,7 @@ if __name__ == "__main__":
         try:
             install.check_preconditions()
 
-            print("Start strongMan installation")
+            print("Start strongswan_manager installation")
             print("\t- Virtualenv")
             install.install_virtualenv(interpreter)
             print("\t- Requirements")
@@ -240,7 +240,7 @@ if __name__ == "__main__":
             print(e)
 
     if args.command == "uninstall":
-        print("Uninstall strongMan")
+        print("Uninstall strongswan_manager")
         uninstaller = Uninstaller()
         if args.verbose:
             uninstaller.mute = False
@@ -267,11 +267,11 @@ if __name__ == "__main__":
     if args.command == "migrate":
         migrator = Migrator()
         if not migrator.is_installed:
-            raise InstallerException("strongMan is not installed.")
+            raise InstallerException("strongswan_manager is not installed.")
         if args.verbose:
             migrator.mute = False
 
-        print("Migrate strongMan")
+        print("Migrate strongswan_manager")
         if args.delete_migrations:
             migrator.delete_migrations()
             migrator.delete_db()

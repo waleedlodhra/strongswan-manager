@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load vici_checker %}
+{% block title %}About{% endblock title %}
+{% block content %}
+<div id="about">
+    {% vici_reachable as result %}
+    {% if result.reachable %}
+        <div class="row" id="daemon_info">
+            <div class="col-12 col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header"><strong>Daemon Information</strong></div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><span class="text-muted">Daemon:</span> {{ daemon.decode }}</li>
+                        <li class="list-group-item"><span class="text-muted">Version:</span> {{ version.decode }}</li>
+                        <li class="list-group-item"><span class="text-muted">System:</span> {{ sysname.decode }}</li>
+                        <li class="list-group-item"><span class="text-muted">Release:</span> {{ release.decode }}</li>
+                        <li class="list-group-item"><span class="text-muted">Machine:</span> {{ machine.decode }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <h4>Installed Plugins</h4>
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-2 mb-3" id="plugins">
+            {% for plugin in plugins %}
+                <div class="col">
+                    <span class="badge bg-secondary w-100 text-wrap">{{ plugin.decode }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        <p class="text-muted">
+            strongSwan ships with an ever-growing plugin ecosystem.
+            See all <a href="https://docs.strongswan.org/docs/latest/plugins/plugins.html" target="_blank">available plugins</a>.
+        </p>
+        <hr>
+    {% else %}
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i> VICI interface is not reachable. Cannot display daemon information.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

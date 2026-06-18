@@ -7,3 +7,11 @@ django-tables2==2.3.4
 vici==5.8.4
 gunicorn==23.0.0
 dj_static==0.0.6
+
+# Phase 0 additions
+djangorestframework==3.15.2
+channels==4.1.0
+daphne==4.1.2
+watchdog==4.0.1
+APScheduler==3.10.4
+factory_boy==3.3.1

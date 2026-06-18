@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}Dashboard{% endblock title %}
+{% block content %}
+<div id="main-page">
+    <div class="client-mode">
+        <div class="p-4 mb-4 bg-light rounded-3 border">
+            <h2>Welcome to StrongSwan Manager — Client Edition</h2>
+            <p class="lead">A complete management interface for the strongSwan VPN solution. Configure and establish IPsec connections through a user-friendly GUI.</p>
+        </div>
+        <div class="alert alert-info alert-dismissible fade show one-time-alert" role="alert">
+            <strong>Tip:</strong> Use the button in the top-right to switch between Client and Server mode.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <h4>Getting started</h4>
+        <ul>
+            <li>Create a new connection in the <a href="{% url "connections:index" %}">Connections</a> section.</li>
+            <li>Upload certificates in the <a href="{% url "certificates:overview" %}">Certificates</a> section.</li>
+        </ul>
+    </div>
+
+    <div class="server-mode">
+        <div class="p-4 mb-4 bg-light rounded-3 border">
+            <h2>Welcome to StrongSwan Manager — Server Edition</h2>
+            <p class="lead">A complete management interface for the strongSwan VPN solution. Manage server-side IPsec tunnels, remote access VPNs, and site-to-site connections.</p>
+        </div>
+        <div class="alert alert-info alert-dismissible fade show one-time-alert" role="alert">
+            <strong>Tip:</strong> Use the button in the top-right to switch between Server and Client mode.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <h4>Getting started</h4>
+        <ul>
+            <li>Upload certificates in the <a href="{% url "certificates:overview" %}">Certificates</a> section.</li>
+            <li>Create site-to-site or remote access connections in the <a href="{% url "server_connections:index" %}">Server Connections</a> section.</li>
+            <li>Manage EAP Secrets for user authentication in the <a href="{% url "eap_secrets:overview" %}">EAP Secrets</a> section.</li>
+            <li>Create IP address pools in the <a href="{% url "pools:index" %}">Pools</a> section.</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

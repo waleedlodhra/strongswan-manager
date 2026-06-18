@@ -1,0 +1,14 @@
+[Unit]
+Description=StrongSwan Manager web GUI
+After=network.target strongswan-swanctl.service
+Wants=strongswan-swanctl.service
+
+[Service]
+Type=simple
+ExecStart=${workingDir}/env/bin/python run.py
+WorkingDirectory=${workingDir}
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
