@@ -170,6 +170,10 @@ class PskAuthentication(Authentication):
     """IKEv1/IKEv2 Pre-Shared Key authentication."""
     psk_id = models.TextField(blank=True, default='')
 
+    @property
+    def eap_id(self):
+        return self.psk_id
+
     def dict(self):
         auth = super().dict()
         if self.psk_id:
@@ -180,6 +184,10 @@ class PskAuthentication(Authentication):
 class XauthAuthentication(Authentication):
     """IKEv1 XAUTH (extended authentication) — used on the initiator."""
     xauth_id = models.TextField(blank=True, default='')
+
+    @property
+    def eap_id(self):
+        return self.xauth_id
 
     def dict(self):
         auth = super().dict()

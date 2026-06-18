@@ -7,19 +7,23 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    # daphne must be before django.contrib.staticfiles to serve static files
+    # via ASGI runserver (replaces the default WSGI dev server).
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'strongswan_manager.helper_apps.vici',
     'strongswan_manager.apps.connections',
     'strongswan_manager.apps.certificates',
     'strongswan_manager.apps.eap_secrets',
     'strongswan_manager.apps.server_connections',
     'strongswan_manager.apps.pools',
-    # Phase 5+: monitoring, sync, api
+    'strongswan_manager.apps.monitoring',
     'django_tables2',
     'rest_framework',
 ]
@@ -59,6 +63,14 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'strongswan_manager.wsgi.application'
+ASGI_APPLICATION = 'strongswan_manager.asgi.application'
+
+# In-memory channel layer — no Redis needed for single-server deployment.
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {

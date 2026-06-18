@@ -1,0 +1,37 @@
+{% extends "connections/forms/ConnectionForm.html" %}
+{% load connections_extras %}
+{% block form_content %}
+<div class="row mb-3">
+    <p class="col-xs-12">Enter the Pre-Shared Key (phase 1) and your XAUTH credentials (phase 2).</p>
+</div>
+
+<h6 class="mb-2 text-muted">Phase 1 — Pre-Shared Key</h6>
+<div class="row mb-3">
+    <label class="control-label col-sm-3 col-xs-12">Local Identity</label>
+    <div class="controls col-sm-8 col-xs-10">
+        <input type="text" class="form-control" name="psk_id"
+               value="{{ form.psk_id.value }}"
+               placeholder="e.g. user@example.com (optional)"/>
+        {% include "connections/forms/../widgets/errormsg.html" with field=form.psk_id %}
+    </div>
+    <div class="col-sm-1 col-xs-2">
+        {% include "connections/widgets/QuestionPopover.html" with title="Local Identity" content="Optional IKE identity. Leave blank to use the local IP address." %}
+    </div>
+</div>
+<div class="row mb-3">
+    <label class="control-label col-sm-3 col-xs-12">Pre-Shared Key</label>
+    <div class="controls col-sm-8 col-xs-10">
+        <input type="password" class="form-control" name="psk_secret"
+               placeholder="{% if connection %}Leave blank to keep existing key{% else %}Shared secret{% endif %}"/>
+        {% include "connections/forms/../widgets/errormsg.html" with field=form.psk_secret %}
+    </div>
+    <div class="col-sm-1 col-xs-2">
+        {% include "connections/widgets/QuestionPopover.html" with title="Pre-Shared Key" content="Must match the server-side PSK exactly." %}
+    </div>
+</div>
+<hr>
+
+<h6 class="mb-2 text-muted">Phase 2 — XAUTH Credentials</h6>
+{% include "connections/forms/UserPassword.html" with username=form.xauth_id password=form.xauth_secret %}
+<hr>
+{% endblock form_content %}

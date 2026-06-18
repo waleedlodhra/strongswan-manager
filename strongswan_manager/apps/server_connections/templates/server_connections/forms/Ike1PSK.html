@@ -1,0 +1,34 @@
+{% extends "server_connections/forms/ConnectionForm.html" %}
+{% load connections_extras %}
+{% block form_content %}
+<div class="row mb-3">
+    <p class="col-xs-12">IKEv1 Pre-Shared Key — configure the shared secret for this site-to-site or remote-access connection.</p>
+</div>
+
+<div class="row mb-3">
+    <label class="control-label col-sm-3 col-xs-12">Local Identity</label>
+    <div class="controls col-sm-8 col-xs-10">
+        <input type="text" class="form-control" name="psk_id"
+               value="{{ form.psk_id.value }}"
+               placeholder="e.g. server@example.com (optional)"/>
+        {% include "server_connections/forms/../widgets/errormsg.html" with field=form.psk_id %}
+    </div>
+    <div class="col-sm-1 col-xs-2">
+        {% include "server_connections/widgets/QuestionPopover.html" with title="Local Identity" content="Optional IKE identity presented to the peer. Leave blank to use the local IP address." %}
+    </div>
+</div>
+<div class="row mb-3">
+    <label class="control-label col-sm-3 col-xs-12">Pre-Shared Key</label>
+    <div class="controls col-sm-8 col-xs-10">
+        <input type="password" class="form-control" name="psk_secret"
+               placeholder="{% if connection %}Leave blank to keep existing key{% else %}Shared secret{% endif %}"/>
+        {% include "server_connections/forms/../widgets/errormsg.html" with field=form.psk_secret %}
+    </div>
+    <div class="col-sm-1 col-xs-2">
+        {% include "server_connections/widgets/QuestionPopover.html" with title="Pre-Shared Key" content="Must match the peer's PSK exactly." %}
+    </div>
+</div>
+<hr>
+{% include "server_connections/forms/PoolPicker.html" with pool=form.pool %}
+<hr>
+{% endblock form_content %}

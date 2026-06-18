@@ -1,0 +1,13 @@
+{% extends "connections/forms/ConnectionForm.html" %}
+{% load connections_extras %}
+{% block form_content %}
+    {% include "connections/forms/CertificatePicker.html" with form=form %}
+    <hr>
+    <div class="row">
+        <div class="col-xs-12">
+            <p>Choose the CA certificate which authenticates the server.</p>
+        </div>
+    </div>
+    {% include "connections/forms/CaPicker.html" with form=form %}
+    <hr>
+{% endblock form_content %}

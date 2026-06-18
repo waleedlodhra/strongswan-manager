@@ -1,0 +1,40 @@
+{% extends "server_connections/forms/ConnectionForm.html" %}
+{% load connections_extras %}
+{% block form_content %}
+    <div class="row">
+        <p class="col-xs-12">IKEv1 XAUTH + Certificate — phase 1 uses a certificate; clients additionally authenticate via XAUTH.</p>
+    </div>
+
+    <h6 class="mb-2 text-muted">Phase 1 — Certificate (local)</h6>
+    <div class="row">
+        <div class="col-xs-12">
+            <p>Choose the server certificate. Only certificates with private keys are shown.</p>
+        </div>
+    </div>
+    {% include "server_connections/forms/CertificatePicker.html" with certificate=form.certificate identity=form.identity %}
+    <hr>
+
+    <div class="row">
+        <p class="col-xs-12">Remote authentication</p>
+    </div>
+    {% include "server_connections/forms/CaPicker.html" with form=form %}
+    <hr>
+
+    <h6 class="mb-2 text-muted">Phase 2 — XAUTH (expected peer identity)</h6>
+    <div class="row mb-3">
+        <label class="control-label col-sm-3 col-xs-12">XAUTH Identity</label>
+        <div class="controls col-sm-8 col-xs-10">
+            <input type="text" class="form-control" name="xauth_id"
+                   value="{{ form.xauth_id.value }}"
+                   placeholder="Leave blank to accept any XAUTH identity"/>
+            {% include "server_connections/forms/../widgets/errormsg.html" with field=form.xauth_id %}
+        </div>
+        <div class="col-sm-1 col-xs-2">
+            {% include "server_connections/widgets/QuestionPopover.html" with title="XAUTH Identity" content="Optional. If set, only clients presenting this XAUTH identity are accepted." %}
+        </div>
+    </div>
+    <hr>
+
+    {% include "server_connections/forms/PoolPicker.html" with pool=form.pool %}
+    <hr>
+{% endblock form_content %}

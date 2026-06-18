@@ -2,9 +2,11 @@ import sys
 
 from django import forms
 from strongswan_manager.apps.server_connections.forms.SubForms import HeaderForm, RemoteCertificateForm, \
-    RemoteIdentityForm, ServerCertificateForm, EapForm, EapTlsForm, PoolForm
-from strongswan_manager.apps.connections.models import IKEv2Certificate, IKEv2EAP, \
-    IKEv2CertificateEAP, IKEv2EapTls
+    RemoteIdentityForm, ServerCertificateForm, EapForm, EapTlsForm, PoolForm, PskForm, XauthForm
+from strongswan_manager.apps.connections.models import (
+    IKEv2Certificate, IKEv2EAP, IKEv2CertificateEAP, IKEv2EapTls,
+    IKEv1PSK, IKEv1Certificate, IKEv1XauthPSK, IKEv1XauthCertificate,
+)
 
 
 class AbstractDynamicForm(forms.Form):
@@ -168,6 +170,56 @@ class Ike2EapTlsForm(AbstractConnectionForm, HeaderForm, EapTlsForm,
     @property
     def template(self):
         return "server_connections/forms/Ike2EapTls.html"
+
+    def update_certs(self):
+        self.update_certificates()
+
+
+# ── IKEv1 server-side forms ───────────────────────────────────────────────────
+
+class Ike1PskForm(AbstractConnectionForm, HeaderForm, PskForm, PoolForm):
+    @property
+    def model(self):
+        return IKEv1PSK
+
+    @property
+    def template(self):
+        return "server_connections/forms/Ike1PSK.html"
+
+
+class Ike1CertificateForm(AbstractConnectionForm, HeaderForm, ServerCertificateForm,
+                          RemoteCertificateForm, RemoteIdentityForm, PoolForm):
+    @property
+    def model(self):
+        return IKEv1Certificate
+
+    @property
+    def template(self):
+        return "server_connections/forms/Ike1Certificate.html"
+
+    def update_certs(self):
+        self.update_certificates()
+
+
+class Ike1XauthPskForm(AbstractConnectionForm, HeaderForm, PskForm, XauthForm, PoolForm):
+    @property
+    def model(self):
+        return IKEv1XauthPSK
+
+    @property
+    def template(self):
+        return "server_connections/forms/Ike1XauthPsk.html"
+
+
+class Ike1XauthCertificateForm(AbstractConnectionForm, HeaderForm, ServerCertificateForm,
+                                RemoteCertificateForm, RemoteIdentityForm, XauthForm, PoolForm):
+    @property
+    def model(self):
+        return IKEv1XauthCertificate
+
+    @property
+    def template(self):
+        return "server_connections/forms/Ike1XauthCertificate.html"
 
     def update_certs(self):
         self.update_certificates()

@@ -53,11 +53,11 @@ strongswan-manager/
 | 1 | ✅ DONE | Unified data model (all swanctl fields, IKEv1/PSK/XAUTH, Authority model, 232 tests) |
 | 2 | ✅ DONE | Enhanced VICI service — ViciService singleton + SaMonitor, all 38 commands, 313 tests |
 | 3 | ✅ DONE | Config import engine — ipsec.conf/secrets/swanctl parsers + import management cmd, 392 tests |
-| 4 | 🔲 NEXT | Two-way synchronization (GUI→StrongSwan signals, file watcher→GUI) |
-| 5 | 🔲 TODO | Real-time monitoring dashboard (WebSocket SA table) |
-| 6 | 🔲 TODO | Complete GUI feature coverage (IKEv1, PSK, transport mode, etc.) |
-| 7 | 🔲 TODO | install.sh one-command installer |
-| 8 | 🔲 TODO | Full test suite |
+| 4 | ✅ DONE | Two-way synchronization (SyncEngine, ConfigFileWatcher, Django signals, 437 tests total) |
+| 5 | ✅ DONE | Real-time monitoring dashboard (WebSocket SA table, SaMonitor, Daphne, 456 tests) |
+| 6 | ✅ DONE | Complete GUI feature coverage — IKEv1 PSK/Certificate/XAUTH+PSK/XAUTH+Certificate (client + server), 486 tests |
+| 7 | ✅ DONE | install.sh one-command installer (venv, migrations, collectstatic, admin user, config import, systemd) |
+| 8 | ✅ DONE | Full test suite — 554 passing tests (68 new: eap_secrets views, pools views, server_connections views, connections views/extended, auth model dict) |
 
 ## Running the Project (Development)
 ```bash

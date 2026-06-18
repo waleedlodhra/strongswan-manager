@@ -8,6 +8,7 @@ from .apps.eap_secrets import urls as eap_secrets_url
 from .apps.connections import urls as connections_urls
 from .apps.server_connections import urls as server_connections_urls
 from .apps.pools import urls as pools
+from .apps.monitoring import urls as monitoring_urls
 from .apps.views import index
 
 urlpatterns = [
@@ -18,6 +19,7 @@ urlpatterns = [
     re_path(r'^pools/', include(pools)),
     re_path(r'^certificates/', include(certificates_url)),
     re_path(r'^eap_secrets/', include(eap_secrets_url)),
+    re_path(r'^monitoring/', include(monitoring_urls)),
     re_path(r'^login/?$', views.login, name='login'),
     re_path(r'^logout/?$', views.logout, name='logout'),
     re_path(r'change_pw$', views.pw_change, name='pw_change'),

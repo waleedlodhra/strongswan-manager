@@ -100,5 +100,9 @@ target/
 #strongMan secret keys
 secret_key.txt
 db_key.txt
-#Django static files in production enviromnet
+#Django static files (collectstatic output)
 strongMan/staticfiles/
+strongswan_manager/staticfiles/
+# Virtual environment
+env/
+.env

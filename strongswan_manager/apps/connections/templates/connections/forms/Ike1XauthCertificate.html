@@ -1,0 +1,22 @@
+{% extends "connections/forms/ConnectionForm.html" %}
+{% load connections_extras %}
+{% block form_content %}
+    <div class="row">
+        <p class="col-xs-12">Select your certificate (phase 1) and enter XAUTH credentials (phase 2).</p>
+    </div>
+
+    <h6 class="mb-2 text-muted">Phase 1 — Certificate</h6>
+    {% include "connections/forms/CertificatePicker.html" with form=form %}
+    <hr>
+    <div class="row">
+        <div class="col-xs-12">
+            <p>Choose the CA certificate which authenticates the server.</p>
+        </div>
+    </div>
+    {% include "connections/forms/CaPicker.html" with form=form %}
+    <hr>
+
+    <h6 class="mb-2 text-muted">Phase 2 — XAUTH Credentials</h6>
+    {% include "connections/forms/UserPassword.html" with username=form.xauth_id password=form.xauth_secret %}
+    <hr>
+{% endblock form_content %}

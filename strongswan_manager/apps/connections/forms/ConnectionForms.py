@@ -2,9 +2,11 @@ import sys
 
 from django import forms
 from strongswan_manager.apps.connections.forms.SubForms import HeaderForm, CaCertificateForm, \
-    ServerIdentityForm, UserCertificateForm, EapForm, EapTlsForm
-from strongswan_manager.apps.connections.models.connections import IKEv2Certificate, IKEv2EAP, IKEv2CertificateEAP, \
-    IKEv2EapTls
+    ServerIdentityForm, UserCertificateForm, EapForm, EapTlsForm, PskForm, XauthForm
+from strongswan_manager.apps.connections.models.connections import (
+    IKEv2Certificate, IKEv2EAP, IKEv2CertificateEAP, IKEv2EapTls,
+    IKEv1PSK, IKEv1Certificate, IKEv1XauthPSK, IKEv1XauthCertificate,
+)
 
 
 class AbstractDynamicForm(forms.Form):
@@ -149,6 +151,83 @@ class Ike2EapTlsForm(AbstractConnectionForm, HeaderForm, CaCertificateForm, Serv
     @property
     def template(self):
         return "connections/forms/Ike2EapTls.html"
+
+    def update_certs(self):
+        self.update_certificates()
+
+
+# ── IKEv1 client-side forms ───────────────────────────────────────────────────
+
+class _Ike1Mixin:
+    """Override create_connection to set version='1' and auth='psk'/'pubkey'."""
+    _ike1_auth = 'psk'
+
+    def create_connection(self):
+        connection = self.model(
+            profile=self.cleaned_data['profile'],
+            auth=self._ike1_auth,
+            version='1',
+        )
+        connection.save()
+        for base in self.__class__.__bases__:
+            if base in (_Ike1Mixin, AbstractConnectionForm):
+                continue
+            if hasattr(base, 'create_connection'):
+                base.create_connection(self, connection)
+        return connection
+
+
+class Ike1PskForm(_Ike1Mixin, AbstractConnectionForm, HeaderForm, PskForm):
+    _ike1_auth = 'psk'
+
+    @property
+    def model(self):
+        return IKEv1PSK
+
+    @property
+    def template(self):
+        return "connections/forms/Ike1PSK.html"
+
+
+class Ike1CertificateForm(_Ike1Mixin, AbstractConnectionForm, HeaderForm, UserCertificateForm,
+                          CaCertificateForm, ServerIdentityForm):
+    _ike1_auth = 'pubkey'
+
+    @property
+    def model(self):
+        return IKEv1Certificate
+
+    @property
+    def template(self):
+        return "connections/forms/Ike1Certificate.html"
+
+    def update_certs(self):
+        self.update_certificates()
+
+
+class Ike1XauthPskForm(_Ike1Mixin, AbstractConnectionForm, HeaderForm, PskForm, XauthForm):
+    _ike1_auth = 'psk'
+
+    @property
+    def model(self):
+        return IKEv1XauthPSK
+
+    @property
+    def template(self):
+        return "connections/forms/Ike1XauthPsk.html"
+
+
+class Ike1XauthCertificateForm(_Ike1Mixin, AbstractConnectionForm, HeaderForm, UserCertificateForm,
+                                CaCertificateForm, ServerIdentityForm, XauthForm):
+    _ike1_auth = 'pubkey'
+
+    @property
+    def model(self):
+        return IKEv1XauthCertificate
+
+    @property
+    def template(self):
+        return "connections/forms/Ike1XauthCertificate.html"
 
     def update_certs(self):
         self.update_certificates()

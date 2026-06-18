@@ -1,17 +1,25 @@
-Django==4.2.30
-git+https://github.com/wbond/oscrypto.git@1547f535001ba568b239b8797465536759c742a3
-asn1crypto==1.5.1
-cryptography==46.0.7
-pyaes==1.6.1
-django-tables2==2.3.4
-vici==5.8.4
-gunicorn==23.0.0
-dj_static==0.0.6
+# Core Django stack
+Django>=4.2,<6.0
+djangorestframework>=3.14
+django-tables2>=2.3
 
-# Phase 0 additions
-djangorestframework==3.15.2
-channels==4.1.0
-daphne==4.1.2
-watchdog==4.0.1
-APScheduler==3.10.4
-factory_boy==3.3.1
+# Encryption / PKI
+git+https://github.com/wbond/oscrypto.git@1547f535001ba568b239b8797465536759c742a3
+asn1crypto>=1.5.1
+cryptography>=40.0
+pyaes>=1.6.1
+
+# VICI (StrongSwan management API)
+vici>=5.8
+
+# ASGI / WebSocket (Daphne is included via channels[daphne])
+channels[daphne]>=4.0
+
+# Static file serving over ASGI (wsgi.py fallback)
+dj-static>=0.0.6
+
+# File watching for config sync
+watchdog>=3.0
+
+# Background task scheduler (no broker required)
+APScheduler>=3.10

@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block html-head %}
+<style>
+  .sa-state-ESTABLISHED { color: #198754; }
+  .sa-state-CONNECTING  { color: #ffc107; }
+  .sa-state-DELETING    { color: #dc3545; }
+  #ws-indicator { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .ws-connected    { background-color: #198754; }
+  .ws-connecting   { background-color: #ffc107; animation: blink 1s step-start infinite; }
+  .ws-disconnected { background-color: #dc3545; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .mono { font-family: monospace; font-size: .85em; }
+  .sa-row td { vertical-align: middle; }
+</style>
+{% endblock html-head %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+
+  <!-- Header row -->
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h4 class="mb-0"><i class="bi bi-activity me-2"></i>Live SA Monitor</h4>
+    <div class="d-flex align-items-center gap-3">
+      <span class="text-muted small">Last update: <span id="last-updated">—</span></span>
+      <button id="refresh-btn" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-clockwise"></i> Refresh
+      </button>
+      <span class="d-flex align-items-center gap-1 small">
+        <span id="ws-indicator" class="ws-connecting"></span>
+        <span id="ws-status-text">Connecting…</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- SA table -->
+  <div class="table-responsive">
+    <table class="table table-hover table-sm align-middle" id="sa-table">
+      <thead class="table-dark">
+        <tr>
+          <th>Connection</th>
+          <th>IKE</th>
+          <th>State</th>
+          <th>Local</th>
+          <th>Remote</th>
+          <th>Cipher</th>
+          <th>Up&nbsp;for</th>
+          <th>Children</th>
+        </tr>
+      </thead>
+      <tbody id="sa-tbody">
+        <!-- populated by JS -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty / error states -->
+  <div id="no-sa-row" class="text-center text-muted py-5" style="display:none">
+    <i class="bi bi-shield-slash fs-1 d-block mb-2"></i>
+    No active IKE Security Associations
+  </div>
+  <div id="charon-down-row" class="alert alert-warning" style="display:none">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+    Cannot reach charon — the VPN daemon may be down.
+  </div>
+
+</div>
+{% endblock content %}
+
+{% block extra-scripts %}
+<script>
+(function () {
+  'use strict';
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function fmtSeconds(secs) {
+    secs = parseInt(secs) || 0;
+    if (secs < 60)   return secs + 's';
+    if (secs < 3600) return Math.floor(secs / 60) + 'm ' + (secs % 60) + 's';
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    return h + 'h ' + m + 'm';
+  }
+
+  function stateBadge(state) {
+    const cls = state === 'ESTABLISHED' ? 'success' :
+                state === 'CONNECTING'  ? 'warning text-dark' :
+                state === 'DELETING'    ? 'danger' : 'secondary';
+    return `<span class="badge bg-${cls}">${esc(state || 'UNKNOWN')}</span>`;
+  }
+
+  function cipherStr(sa) {
+    const parts = [sa['encr-alg']];
+    if (sa['encr-keysize']) parts.push(sa['encr-keysize'] + ' bit');
+    if (sa['integ-alg'])    parts.push(sa['integ-alg']);
+    return parts.filter(Boolean).join(' / ');
+  }
+
+  // ── Table update ───────────────────────────────────────────────────────────
+  function updateTable(sas) {
+    const tbody = document.getElementById('sa-tbody');
+    const noSa  = document.getElementById('no-sa-row');
+    const down  = document.getElementById('charon-down-row');
+    down.style.display = 'none';
+
+    if (!sas || sas.length === 0) {
+      tbody.innerHTML = '';
+      noSa.style.display = '';
+      return;
+    }
+    noSa.style.display = 'none';
+
+    // Build new rows keyed by uniqueid for stable ordering
+    const rows = [];
+    sas.forEach(function(saObj) {
+      const name = Object.keys(saObj)[0];
+      const sa   = saObj[name] || {};
+      const children  = sa['child-sas'] || {};
+      const childCount = Object.keys(children).length;
+      rows.push(`
+        <tr class="sa-row">
+          <td><strong class="mono">${esc(name)}</strong></td>
+          <td>IKEv${esc(sa['version'] || '?')}</td>
+          <td>${stateBadge(sa['state'])}</td>
+          <td class="mono small">
+            ${esc(sa['local-host'] || '—')}<br>
+            <span class="text-muted">${esc(sa['local-id'] || '')}</span>
+          </td>
+          <td class="mono small">
+            ${esc(sa['remote-host'] || '—')}<br>
+            <span class="text-muted">${esc(sa['remote-id'] || '')}</span>
+          </td>
+          <td class="small text-muted">${esc(cipherStr(sa))}</td>
+          <td class="small">${sa['established'] ? fmtSeconds(sa['established']) : '—'}</td>
+          <td><span class="badge bg-secondary">${childCount}</span></td>
+        </tr>`);
+    });
+    tbody.innerHTML = rows.join('');
+    document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+  }
+
+  // ── WebSocket ──────────────────────────────────────────────────────────────
+  const WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://') +
+                 location.host + '/ws/monitoring/';
+  let ws = null;
+  let reconnectDelay = 1000;
+
+  function setStatus(state) {
+    const dot  = document.getElementById('ws-indicator');
+    const text = document.getElementById('ws-status-text');
+    dot.className = '';
+    if (state === 'connected')    { dot.className = 'ws-connected';    text.textContent = 'Live';          }
+    else if (state === 'connecting') { dot.className = 'ws-connecting'; text.textContent = 'Connecting…';  }
+    else                          { dot.className = 'ws-disconnected'; text.textContent = 'Disconnected'; }
+  }
+
+  function connect() {
+    setStatus('connecting');
+    ws = new WebSocket(WS_URL);
+
+    ws.onopen = function () {
+      setStatus('connected');
+      reconnectDelay = 1000;
+    };
+
+    ws.onclose = function () {
+      setStatus('disconnected');
+      setTimeout(connect, reconnectDelay);
+      reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+    };
+
+    ws.onerror = function () { ws.close(); };
+
+    ws.onmessage = function (evt) {
+      let msg;
+      try { msg = JSON.parse(evt.data); } catch (e) { return; }
+
+      if (msg.type === 'sa.snapshot') {
+        if (msg.error) {
+          document.getElementById('charon-down-row').style.display = '';
+        }
+        updateTable(msg.sas || []);
+      } else if (msg.type === 'sa.event') {
+        // An SA changed — request a fresh snapshot immediately
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'refresh' }));
+        }
+      }
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    connect();
+    document.getElementById('refresh-btn').addEventListener('click', function () {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'refresh' }));
+      }
+    });
+  });
+}());
+</script>
+{% endblock extra-scripts %}

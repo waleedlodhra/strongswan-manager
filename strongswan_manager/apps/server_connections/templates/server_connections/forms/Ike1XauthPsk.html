@@ -1,0 +1,51 @@
+{% extends "server_connections/forms/ConnectionForm.html" %}
+{% load connections_extras %}
+{% block form_content %}
+<div class="row mb-3">
+    <p class="col-xs-12">IKEv1 XAUTH + PSK — phase 1 uses a Pre-Shared Key; clients additionally authenticate via XAUTH.</p>
+</div>
+
+<h6 class="mb-2 text-muted">Phase 1 — Pre-Shared Key</h6>
+<div class="row mb-3">
+    <label class="control-label col-sm-3 col-xs-12">Local Identity</label>
+    <div class="controls col-sm-8 col-xs-10">
+        <input type="text" class="form-control" name="psk_id"
+               value="{{ form.psk_id.value }}"
+               placeholder="e.g. server@example.com (optional)"/>
+        {% include "server_connections/forms/../widgets/errormsg.html" with field=form.psk_id %}
+    </div>
+    <div class="col-sm-1 col-xs-2">
+        {% include "server_connections/widgets/QuestionPopover.html" with title="Local Identity" content="Optional IKE identity. Leave blank to use the local IP address." %}
+    </div>
+</div>
+<div class="row mb-3">
+    <label class="control-label col-sm-3 col-xs-12">Pre-Shared Key</label>
+    <div class="controls col-sm-8 col-xs-10">
+        <input type="password" class="form-control" name="psk_secret"
+               placeholder="{% if connection %}Leave blank to keep existing key{% else %}Shared secret{% endif %}"/>
+        {% include "server_connections/forms/../widgets/errormsg.html" with field=form.psk_secret %}
+    </div>
+    <div class="col-sm-1 col-xs-2">
+        {% include "server_connections/widgets/QuestionPopover.html" with title="Pre-Shared Key" content="Must match the client's PSK." %}
+    </div>
+</div>
+<hr>
+
+<h6 class="mb-2 text-muted">Phase 2 — XAUTH (expected peer identity)</h6>
+<div class="row mb-3">
+    <label class="control-label col-sm-3 col-xs-12">XAUTH Identity</label>
+    <div class="controls col-sm-8 col-xs-10">
+        <input type="text" class="form-control" name="xauth_id"
+               value="{{ form.xauth_id.value }}"
+               placeholder="Leave blank to accept any XAUTH identity"/>
+        {% include "server_connections/forms/../widgets/errormsg.html" with field=form.xauth_id %}
+    </div>
+    <div class="col-sm-1 col-xs-2">
+        {% include "server_connections/widgets/QuestionPopover.html" with title="XAUTH Identity" content="Optional. If set, only clients with this XAUTH identity are accepted." %}
+    </div>
+</div>
+<hr>
+
+{% include "server_connections/forms/PoolPicker.html" with pool=form.pool %}
+<hr>
+{% endblock form_content %}

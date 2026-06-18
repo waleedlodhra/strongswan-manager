@@ -2,7 +2,7 @@ from django import forms
 from strongswan_manager.apps.certificates.models import UserCertificate, AbstractIdentity
 from strongswan_manager.apps.connections.models import Connection, Child, Address, Proposal, \
     AutoCaAuthentication, CaCertificateAuthentication, CertificateAuthentication, EapAuthentication, \
-    EapTlsAuthentication, IKEv2Certificate, IKEv2CertificateEAP
+    EapTlsAuthentication, IKEv2Certificate, IKEv2CertificateEAP, PskAuthentication, XauthAuthentication, Secret
 from .FormFields import CertificateChoice, IdentityChoice, PoolChoice
 from strongswan_manager.apps.pools.models import Pool
 
@@ -383,3 +383,69 @@ class EapForm(forms.Form):
                 sub.auth = self.cleaned_data['remote_auth']
                 sub.eap_id = self.cleaned_data["eap_id"]
                 sub.save()
+
+
+class PskForm(forms.Form):
+    """Pre-Shared Key fields for IKEv1 PSK authentication (server/responder side)."""
+    psk_id = forms.CharField(max_length=200, required=False, initial='', label='Local identity (optional)')
+    psk_secret = forms.CharField(
+        max_length=256, widget=forms.PasswordInput(render_value=False),
+        required=False, label='Pre-Shared Key',
+    )
+
+    def fill(self, connection):
+        for local in connection.local.all():
+            sub = local.subclass()
+            if isinstance(sub, PskAuthentication):
+                self.initial['psk_id'] = sub.psk_id
+                break
+
+    def create_connection(self, connection):
+        local_psk = PskAuthentication(
+            name='local-psk', auth='psk', local=connection,
+            psk_id=self.cleaned_data.get('psk_id', ''),
+        )
+        local_psk.save()
+        secret_data = self.cleaned_data.get('psk_secret', '')
+        if secret_data:
+            Secret(type='IKE', data=secret_data, authentication=local_psk).save()
+        PskAuthentication(name='remote-psk', auth='psk', remote=connection).save()
+
+    def update_connection(self, connection):
+        for local in connection.local.all():
+            sub = local.subclass()
+            if isinstance(sub, PskAuthentication):
+                sub.psk_id = self.cleaned_data.get('psk_id', '')
+                sub.save()
+                secret_data = self.cleaned_data.get('psk_secret', '')
+                if secret_data:
+                    Secret.objects.filter(authentication=sub).update(data=secret_data)
+                break
+
+
+class XauthForm(forms.Form):
+    """XAUTH fields for server-side IKEv1 XAUTH — stores expected peer xauth_id."""
+    xauth_id = forms.CharField(max_length=200, required=False, initial='',
+                               label='Expected XAUTH identity (optional)')
+
+    def fill(self, connection):
+        for remote in connection.remote.all():
+            sub = remote.subclass()
+            if isinstance(sub, XauthAuthentication):
+                self.initial['xauth_id'] = sub.xauth_id
+                break
+
+    def create_connection(self, connection):
+        max_round = max((r.round for r in connection.remote.all()), default=0)
+        XauthAuthentication(
+            name='remote-xauth', auth='xauth', remote=connection,
+            xauth_id=self.cleaned_data.get('xauth_id', ''), round=max_round + 1,
+        ).save()
+
+    def update_connection(self, connection):
+        for remote in connection.remote.all():
+            sub = remote.subclass()
+            if isinstance(sub, XauthAuthentication):
+                sub.xauth_id = self.cleaned_data.get('xauth_id', '')
+                sub.save()
+                break
